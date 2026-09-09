@@ -1,0 +1,326 @@
+import type { ConceptualQuestion } from "../conceptual";
+
+export const expressQuestions: ConceptualQuestion[] = [
+  {
+    topicSlug: "express",
+    slug: "express-middleware-execution-pipeline",
+    title: "How does the Express.js Middleware Pipeline & Execution Order work?",
+    difficulty: "EASY",
+    subtopic: "Architecture & Pipeline",
+    synopsis: "Sequential (req, res, next) pipeline execution, custom middleware, and chain propagation.",
+    shortAnswer:
+      "Express.js processes incoming HTTP requests through a chain of Middleware functions `(req, res, next)`. Each middleware can inspect/modify the request/response, end the response cycle (`res.send()`), or call `next()` to pass control to the next middleware in registration order. If `next()` is not called and no response is sent, the request hangs.",
+    detailedExplanation: [
+      "**Middleware Function Signature:** `(req, res, next) => { ... }`.",
+      "**Categories of Middleware:**",
+      "  1. **Application-level:** Bound to `app` instance (`app.use()`, `app.get()`).",
+      "  2. **Router-level:** Bound to `express.Router()` instance.",
+      "  3. **Built-in:** `express.json()`, `express.urlencoded()`, `express.static()`.",
+      "  4. **Third-party:** `cors()`, `helmet()`, `morgan()`, `cookie-parser`.",
+      "  5. **Error-handling:** 4-argument functions `(err, req, res, next)`.",
+      "**Order of Registration Matters:** Express evaluates middleware in strict top-to-bottom order of `app.use()` calls. Authentication or logging middleware must be placed before route definitions.",
+      "**Modifying Request Context:** Middleware typically attaches parsed data to `req` (e.g., `req.user = decodedToken`) for downstream controllers.",
+    ],
+    interviewTip:
+      "Highlight security best practices: register global security middleware (`helmet`, `cors`, `rate-limit`) at the very top of your Express app entry point before any route handlers.",
+    commonTrap:
+      "Forgetting to call `next()` or send a response (`res.send()`), causing client HTTP requests to timeout after hung execution.",
+    followUpQuestions: [
+      "What happens if you call `next()` multiple times in a single middleware function?",
+      "How do route-specific middleware functions differ from application-level middleware?",
+    ],
+    relatedTopics: ["Express.js", "Middleware", "HTTP Pipeline", "Request Lifecycle"],
+    tags: ["Express.js", "Middleware", "Pipeline", "Architecture", "Backend"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-error-handling-middleware-async",
+    title: "How does Error Handling work in Express.js (4-argument handlers & Async Errors)?",
+    difficulty: "MEDIUM",
+    subtopic: "Error Handling",
+    synopsis: "Global error propagation via 4-argument middleware and catching async promise rejections.",
+    shortAnswer:
+      "Error handling in Express uses special 4-argument middleware functions `(err, req, res, next)`. Calling `next(err)` anywhere in the pipeline skips remaining normal middleware and jumps straight to the next registered error handler. In Express 4, unhandled promise rejections inside `async` route handlers bypass Express error handlers unless wrapped or passed to `next(err)`; Express 5 handles rejected promises automatically.",
+    detailedExplanation: [
+      "**Error Handler Signature:** Express identifies error middleware specifically by checking `fn.length === 4` `(err, req, res, next)`. Omitting `next` breaks parameter detection.",
+      "**Synchronous vs Asynchronous Errors:**",
+      "  - **Synchronous:** Exceptions thrown in route handlers are caught automatically by Express.",
+      "  - **Asynchronous (Express 4):** Rejected Promises (`await asyncFunc()`) must be caught explicitly with `try/catch` and passed to `next(err)`, or wrapped using helper packages like `express-async-errors`.",
+      "  - **Express 5:** Automatically forwards rejected promises to `next(err)`.",
+      "**Centralized Response Formatting:** Global error middleware formats errors into consistent JSON responses (`{ error: err.message, code: 500 }`) and sanitizes stack traces in production (`process.env.NODE_ENV === 'production'`).",
+    ],
+    interviewTip:
+      "Emphasize never exposing raw internal database error messages or stack traces to HTTP clients in production, as this leaks internal architecture to attackers.",
+    commonTrap:
+      "Defining error middleware with 3 arguments `(err, req, res)` instead of 4 `(err, req, res, next)`. Express will treat it as a standard request middleware.",
+    followUpQuestions: [
+      "How does Express 5 improve native async/await error handling compared to Express 4?",
+      "How does the `express-async-errors` module monkey-patch Express routes under the hood?",
+    ],
+    relatedTopics: ["Express.js", "Error Handling", "Async Errors", "Middleware"],
+    tags: ["Express.js", "Error Handling", "Async", "Middleware", "Backend"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-routing-router-module",
+    title: "How does Express Router work and how do you structure Modular Routes?",
+    difficulty: "EASY",
+    subtopic: "Routing",
+    synopsis: "Modular mini-applications using express.Router() for scalable REST endpoint organization.",
+    shortAnswer:
+      "`express.Router()` creates isolated, modular route handlers that behave like mini-Express applications. It allows grouping related REST endpoints (e.g., `/api/users`, `/api/products`) into dedicated files and mounting them on base paths in the main application via `app.use('/prefix', router)`.",
+    detailedExplanation: [
+      "**Creating a Router:**",
+      "  ```js",
+      "  const router = require('express').Router();",
+      "  router.get('/:id', getUserById);",
+      "  module.exports = router;",
+      "  ```",
+      "**Mounting Routers:** `app.use('/api/v1/users', userRouter);`.",
+      "**Route Parameters (`req.params`):** URL dynamic segments specified with colon prefix (`/users/:userId/posts/:postId`).",
+      "**Nested Routers & `mergeParams`:** Setting `{ mergeParams: true }` in `express.Router()` allows child routers to access parameter constraints defined on parent routers (e.g., `:userId`).",
+      "**Chaining Route Handlers (`app.route()`):** Allows defining `GET`, `POST`, `PUT` handlers for a single path cleanly: `app.route('/items').get(getItems).post(createItem);`.",
+    ],
+    interviewTip:
+      "Explain the `{ mergeParams: true }` option when building nested REST resource routes like `/users/:userId/orders/:orderId` where the inner router needs access to `:userId`.",
+    commonTrap:
+      "Defining wildcards or catch-all routes (`/*`) above specific routes (`/profile`), causing specific routes to never be reached.",
+    followUpQuestions: [
+      "What is `router.param()` middleware and how do you pre-load database models using it?",
+      "How does route order affect matching in Express.js?",
+    ],
+    relatedTopics: ["Express Router", "Routing", "REST API", "Modularization"],
+    tags: ["Express.js", "Routing", "Router", "REST", "Architecture"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-request-response-objects",
+    title: "What are the key Request and Response objects and methods in Express.js?",
+    difficulty: "EASY",
+    subtopic: "HTTP API",
+    synopsis: "Core features of req (params, query, body, headers) and res (json, send, status, redirect, download).",
+    shortAnswer:
+      "The `req` object represents the HTTP request, containing properties like `req.params` (route params), `req.query` (query string), `req.body` (parsed body), and `req.headers`. The `res` object handles responses via `res.json()`, `res.status()`, `res.send()`, `res.redirect()`, `res.sendFile()`, and `res.download()`.",
+    detailedExplanation: [
+      "**Request (`req`) Key Properties:**",
+      "  - `req.params`: Object containing route parameters (e.g. `{ id: '123' }`).",
+      "  - `req.query`: Parsed query parameters from URL (`/search?q=node` ➔ `{ q: 'node' }`).",
+      "  - `req.body`: Populated by body-parsing middleware (`express.json()`).",
+      "  - `req.headers` / `req.get('Header-Name')`: Reads HTTP request headers.",
+      "  - `req.ip` & `req.secure`: Remote IP address and TLS detection.",
+      "**Response (`res`) Key Methods:**",
+      "  - `res.status(code)`: Sets HTTP status code (chainable).",
+      "  - `res.json(obj)`: Sends a JSON response with correct `Content-Type: application/json` header.",
+      "  - `res.send(body)`: Sends string, Buffer, or object response.",
+      "  - `res.redirect(status, url)`: Redirects client to target URL.",
+      "  - `res.download(path)`: Prompts client to download file attachment.",
+    ],
+    interviewTip:
+      "Know the difference between `res.json()` and `res.send()`. `res.json()` explicitly formats `null` and `undefined` as JSON and sets JSON headers, whereas `res.send()` infers content-type.",
+    commonTrap:
+      "Calling response methods twice in a single route handler (e.g. `res.json()` followed by `res.send()`), resulting in `ERR_HTTP_HEADERS_SENT` crash.",
+    followUpQuestions: [
+      "What causes the 'Cannot set headers after they are sent to the client' error in Express?",
+      "How does `res.format()` perform HTTP Content Negotiation?",
+    ],
+    relatedTopics: ["Request Object", "Response Object", "HTTP Headers", "Express Methods"],
+    tags: ["Express.js", "Request", "Response", "HTTP", "API"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-body-parser-validation-multer",
+    title: "How do Body Parsing, Input Validation, and Multipart File Uploads (Multer) work?",
+    difficulty: "MEDIUM",
+    subtopic: "Data Processing",
+    synopsis: "Parsing incoming JSON/URL-encoded payloads, validating input schemas, and handling multipart/form-data files.",
+    shortAnswer:
+      "Express uses built-in `express.json()` and `express.urlencoded({ extended: true })` middleware to parse JSON and form data into `req.body`. Multipart file uploads (`multipart/form-data`) cannot be parsed by default JSON parsers and require middleware like `multer`. Input validation is performed using schema validation libraries (`Zod`, `Joi`, or `express-validator`).",
+    detailedExplanation: [
+      "**Built-in Parsers:**",
+      "  - `express.json()`: Parses incoming JSON payloads (`application/json`).",
+      "  - `express.urlencoded({ extended: true })`: Parses URL-encoded data using `qs` library (allows nested objects).",
+      "  - Payload size limits: Set `{ limit: '10mb' }` to prevent memory exhaustion attacks.",
+      "**Multipart File Handling with Multer:**",
+      "  - `multer` streams uploaded files directly to disk destination (`diskStorage`) or memory (`memoryStorage` Buffer).",
+      "  - Middleware single/array binding: `upload.single('avatar')` populates `req.file`; `upload.array('photos', 5)` populates `req.files`.",
+      "**Schema Validation Pattern:** Validate `req.body`, `req.query`, and `req.params` before controller execution using Zod schemas to reject invalid payloads with 400 Bad Request.",
+    ],
+    interviewTip:
+      "Advise against using `memoryStorage()` in `multer` for large video/image uploads, as buffers sit in V8 RAM and cause high memory usage under concurrent uploads. Use disk storage or stream directly to AWS S3.",
+    commonTrap:
+      "Forgetting to mount `express.json()` before route handlers, leaving `req.body` as `undefined`.",
+    followUpQuestions: [
+      "What is the difference between `extended: true` and `extended: false` in `express.urlencoded`?",
+      "How do you implement file type filtering and file size limits in Multer?",
+    ],
+    relatedTopics: ["Body Parser", "Multer", "Input Validation", "File Uploads"],
+    tags: ["Express.js", "Body Parsing", "Multer", "Validation", "Security"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-auth-jwt-sessions-cookies",
+    title: "How do JWT Authentication and Cookie-Based Sessions work in Express.js?",
+    difficulty: "HARD",
+    subtopic: "Authentication",
+    synopsis: "Comparing stateless JSON Web Token header auth against stateful express-session with HTTP-only cookies.",
+    shortAnswer:
+      "Stateless JWT auth issues a signed token upon login; clients transmit it via `Authorization: Bearer <token>` headers, verified by Express auth middleware. Stateful session auth uses `express-session` to store session data server-side (in Redis/DB) and attaches a session ID to an HTTP-only, SameSite cookie sent automatically with requests.",
+    detailedExplanation: [
+      "**Stateless JWT Pattern:**",
+      "  - Login controller verifies user credentials and generates a signed JWT (`jsonwebtoken.sign(payload, secret, { expiresIn })`).",
+      "  - Auth middleware extracts `req.headers.authorization`, calls `jwt.verify()`, and attaches payload to `req.user`.",
+      "  - Advantage: Highly scalable, horizontal server scaling without session sharing.",
+      "**Stateful Session Pattern:**",
+      "  - Uses `express-session` with a store like `connect-redis`.",
+      "  - Server writes session ID into a encrypted `httpOnly`, `Secure`, `SameSite=Strict` cookie.",
+      "  - Advantage: Instant session revocation capability server-side.",
+      "**Passport.js Integration:** Middleware framework providing modular strategies (`passport-local`, `passport-jwt`, `passport-google-oauth20`).",
+    ],
+    interviewTip:
+      "Never store JWT tokens in LocalStorage due to XSS vulnerability risks. Prefer storing JWTs in HTTP-Only, Secure cookies or short-lived memory access tokens paired with HTTP-only refresh cookies.",
+    commonTrap:
+      "Failing to set `httpOnly: true` on cookies, allowing malicious XSS scripts (`document.cookie`) to steal session IDs.",
+    followUpQuestions: [
+      "How do you implement refresh token rotation and token blacklisting in Express?",
+      "What is SameSite cookie attribute and how does it prevent Cross-Site Request Forgery (CSRF)?",
+    ],
+    relatedTopics: ["JWT", "Sessions", "Cookies", "Authentication", "Passport.js"],
+    tags: ["Express.js", "Auth", "JWT", "Sessions", "Security"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-security-helmet-cors-rate-limiting",
+    title: "How do you harden Express.js security with Helmet, CORS, and Rate Limiting?",
+    difficulty: "MEDIUM",
+    subtopic: "Security",
+    synopsis: "Implementing security HTTP headers, CORS origin controls, rate limiting, and sanitization middleware.",
+    shortAnswer:
+      "Hardening Express involves using **Helmet.js** to set security headers (Content Security Policy, HSTS, X-Frame-Options), configuring **CORS** middleware to restrict allowed origins and preflight requests, applying **express-rate-limit** to mitigate DDoS/brute-force attacks, and sanitizing input against NoSQL/SQL injection.",
+    detailedExplanation: [
+      "**Helmet.js Security Headers:** `app.use(helmet())` sets 15+ security HTTP headers:",
+      "  - `Content-Security-Policy` (CSP): Restricts scripts/style assets sources.",
+      "  - `X-Frame-Options: DENY`: Prevents clickjacking inside `<iframe>` elements.",
+      "  - `Strict-Transport-Security` (HSTS): Enforces HTTPS connections.",
+      "  - `X-Content-Type-Options: nosniff`: Prevents MIME type sniffing.",
+      "**CORS (Cross-Origin Resource Sharing):** Controls cross-origin browser access (`cors({ origin: 'https://app.example.com', credentials: true })`). Handles preflight `OPTIONS` requests.",
+      "**Rate Limiting (`express-rate-limit`):** Protects routes (especially `/api/login`) by limiting requests per IP window (e.g. 100 requests per 15 minutes).",
+      "**NoSQL & SQL Injection Prevention:** Sanitize inputs with `express-mongo-sanitize` to strip `$` and `.` characters from user JSON payloads.",
+    ],
+    interviewTip:
+      "Always set `app.disable('x-powered-by')` or use Helmet to strip the `X-Powered-By: Express` response header, preventing attackers from targeting version-specific exploits.",
+    commonTrap:
+      "Configuring CORS with `origin: '*'` while enabling `credentials: true`, which is invalid per CORS specifications and insecure.",
+    followUpQuestions: [
+      "How does CORS preflight OPTIONS request work in Express.js?",
+      "How do you store rate-limiting IP hits across multiple server instances using Redis?",
+    ],
+    relatedTopics: ["Security", "Helmet", "CORS", "Rate Limiting", "OWASP"],
+    tags: ["Express.js", "Security", "Helmet", "CORS", "Rate Limit"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-static-files-caching-nginx",
+    title: "How does Express serve Static Files, handle HTTP Caching, and run behind Nginx Proxies?",
+    difficulty: "MEDIUM",
+    subtopic: "Performance & Deployment",
+    synopsis: "Serving static assets via express.static(), configuring ETag cache headers, and configuring trust proxy.",
+    shortAnswer:
+      "`express.static()` serves static assets (images, CSS, JS) from a directory. HTTP caching is controlled via `maxAge`, `ETag`, and `Last-Modified` options. When deployed behind reverse proxies (Nginx, AWS ALB), setting `app.set('trust proxy', true)` ensures Express reads correct client IP addresses and protocol schemes from `X-Forwarded-*` headers.",
+    detailedExplanation: [
+      "**`express.static(root, [options])`:** Built-in middleware for static asset serving.",
+      "  ```js",
+      "  app.use('/static', express.static(path.join(__dirname, 'public'), {",
+      "      maxAge: '1d',",
+      "      etag: true",
+      "  }));",
+      "  ```",
+      "**HTTP Caching Strategy:** Sets `Cache-Control: public, max-age=86400` headers. Express automatically generates ETags for validation caching (`304 Not Modified`).",
+      "**Reverse Proxy Integration (`trust proxy`):**",
+      "  - When behind Nginx or Cloudflare, `req.ip` defaults to the internal proxy IP.",
+      "  - Enabling `app.set('trust proxy', 1)` forces Express to parse `X-Forwarded-For` and `X-Forwarded-Proto` headers to retrieve real client IPs and detect HTTPS.",
+    ],
+    interviewTip:
+      "In high-traffic production apps, delegate static file serving and TLS termination directly to Nginx or a CDN (Cloudflare, AWS CloudFront) rather than passing static requests to Node/Express.",
+    commonTrap:
+      "Not enabling `trust proxy` when deploying to Heroku, AWS ALB, or Nginx, which breaks IP rate limiting and secure cookie detection (`req.secure`).",
+    followUpQuestions: [
+      "How does 304 Not Modified caching work between Express and the browser using ETags?",
+      "Why should Nginx serve static assets directly instead of proxying them to Express?",
+    ],
+    relatedTopics: ["Static Files", "Nginx", "Caching", "Reverse Proxy"],
+    tags: ["Express.js", "Static Files", "Nginx", "Performance", "DevOps"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-testing-supertest-jest",
+    title: "How do you write Integration Tests for Express applications using Supertest and Jest?",
+    difficulty: "MEDIUM",
+    subtopic: "Testing",
+    synopsis: "End-to-end HTTP endpoint testing using Supertest without spinning up actual network ports.",
+    shortAnswer:
+      "Integration testing in Express uses `supertest` alongside test runners like Jest or Mocha. `supertest(app)` binds to the un-listened Express app instance, executing synthetic HTTP requests against middleware and routes, verifying status codes, headers, and response body JSON payloads without opening network sockets.",
+    detailedExplanation: [
+      "**Separating App Definition from Server Listen:** Export the `app` instance from `app.js` without calling `app.listen()`. Call `app.listen(PORT)` in `server.js`. This allows `supertest(app)` to run fast in test suites.",
+      "**Writing Supertest Suite:**",
+      "  ```js",
+      "  const request = require('supertest');",
+      "  const app = require('../app');",
+      "  ",
+      "  describe('GET /api/users', () => {",
+      "    it('should return 200 OK and list users', async () => {",
+      "      const res = await request(app)",
+      "        .get('/api/users')",
+      "        .set('Authorization', 'Bearer valid_token');",
+      "      expect(res.statusCode).toEqual(200);",
+      "      expect(res.body).toHaveProperty('users');",
+      "    });",
+      "  });",
+      "  ```",
+      "**Database Isolation:** Use in-memory databases (e.g. `mongodb-memory-server` or transactional test rollbacks) and `beforeEach`/`afterAll` hooks for test teardown.",
+    ],
+    interviewTip:
+      "Highlight the architectural pattern of separating `app.js` (Express configuration & routing) from `server.js` (HTTP port binding and DB startup) for seamless unit/integration testing.",
+    commonTrap:
+      "Calling `app.listen()` inside `app.js`, causing `EADDRINUSE` port conflict errors when running Jest test files in parallel.",
+    followUpQuestions: [
+      "Why is separating `app.js` from `server.js` a best practice for Supertest integration testing?",
+      "How do you mock authentication middleware in Supertest integration test suites?",
+    ],
+    relatedTopics: ["Testing", "Supertest", "Jest", "Integration Testing"],
+    tags: ["Express.js", "Testing", "Supertest", "Jest", "TDD"],
+  },
+  {
+    topicSlug: "express",
+    slug: "express-restful-api-mvc-architecture",
+    title: "How do you build RESTful APIs following the MVC Pattern in Express.js?",
+    difficulty: "EASY",
+    subtopic: "Design Patterns",
+    synopsis: "Structuring Express backend projects cleanly with Model-View-Controller layer separation.",
+    shortAnswer:
+      "The Model-View-Controller (MVC) pattern decouples Express apps into **Models** (data layer, ORM/ODM schemas), **Views** (JSON response formatters or template engines), and **Controllers** (business logic & request handlers). Router files map incoming HTTP verbs (`GET`, `POST`, `PUT`, `DELETE`) to specific controller methods.",
+    detailedExplanation: [
+      "**Layered Directory Structure:**",
+      "  - `/controllers`: Request handlers extracting data, calling services, sending `res.json()`.",
+      "  - `/models`: Database schemas (Prisma, Mongoose, Sequelize).",
+      "  - `/routes`: Router definitions binding HTTP endpoints to controller functions.",
+      "  - `/services`: Core business logic decoupled from `req` and `res` objects.",
+      "  - `/middleware`: Reusable request validation, logging, and auth checks.",
+      "**RESTful Conventions & HTTP Status Codes:**",
+      "  - `GET /items` (200 OK - List items)",
+      "  - `POST /items` (201 Created - Create item)",
+      "  - `GET /items/:id` (200 OK or 404 Not Found)",
+      "  - `PUT /items/:id` (200 OK - Idempotent full update)",
+      "  - `DELETE /items/:id` (204 No Content - Idempotent deletion)",
+    ],
+    interviewTip:
+      "Explain the key principle of keeping controllers thin: controllers should only handle HTTP concerns (`req`/`res`), delegating heavy business logic to service modules.",
+    commonTrap:
+      "Putting database queries and raw SQL/ORM calls directly inside router callback functions, creating unmaintainable code.",
+    followUpQuestions: [
+      "What is the difference between PUT and PATCH HTTP methods in RESTful API design?",
+      "Why should business logic be kept in Service layers rather than Express Controller functions?",
+    ],
+    relatedTopics: ["REST API", "MVC Pattern", "Architecture", "Design Patterns"],
+    tags: ["Express.js", "REST", "MVC", "Architecture", "Design Patterns"],
+  },
+];

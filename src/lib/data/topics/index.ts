@@ -19,6 +19,8 @@ import { businessAnalystQuestions } from "./business_analyst";
 import { aiEngineerQuestions } from "./ai_engineer";
 import { productManagerQuestions } from "./product_manager";
 import { frameworksQuestions } from "./frameworks";
+import { nodeQuestions } from "./nodejs";
+import { expressQuestions } from "./express";
 
 export { javaQuestions } from "./java";
 export { pythonQuestions } from "./python";
@@ -40,6 +42,8 @@ export { businessAnalystQuestions } from "./business_analyst";
 export { aiEngineerQuestions } from "./ai_engineer";
 export { productManagerQuestions } from "./product_manager";
 export { frameworksQuestions } from "./frameworks";
+export { nodeQuestions } from "./nodejs";
+export { expressQuestions } from "./express";
 
 /** Modular topic questions bundled together */
 export const allModularQuestions: ConceptualQuestion[] = [
@@ -63,4 +67,7 @@ export const allModularQuestions: ConceptualQuestion[] = [
   ...aiEngineerQuestions,
   ...productManagerQuestions,
   ...frameworksQuestions,
+  ...nodeQuestions,
+  ...expressQuestions,
 ];
+

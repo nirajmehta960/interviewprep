@@ -24,8 +24,9 @@ The platform delivers an uncompromised, distraction-free reading, visual tracing
 
 The question dataset is split into two primary paradigms:
 
-### 1. High-Yield Conceptual Question Library (426 Questions)
+### 1. High-Yield Conceptual Question Library (473 Questions)
 Modular topic collections defined in `src/lib/data/topics/` covering core software engineering internals and interview questions:
+- **OOP & Design** (`oop.ts` — 62 Questions): 4 Pillars, Abstraction vs Encapsulation, Diamond Problem, Virtual Tables & vptr, Covariant Return Types, SOLID Principles (SRP, OCP, LSP, ISP, DIP), Design Patterns (Singleton, Factory, Builder, Strategy, Observer, Adapter, Decorator, Proxy), Law of Demeter, Value Objects vs Entities.
 - **Java** (`java.ts` — 62 Questions): Core Java, Collections internal mechanics (`HashMap`, `ConcurrentHashMap`), Multithreading & Synchronization, JVM Memory Model, Garbage Collectors (G1, ZGC), Java 8-21 Features (`CompletableFuture`, Sealed Classes, Virtual Threads).
 - **Python** (`python.ts` — 62 Questions): Data Types & Immutability, LEGB Scoping, Decorators, Generators & Iterators, Asyncio & Event Loop, GIL (Global Interpreter Lock), Memory Management & Reference Counting, Metaclasses, PyPy & C Extensions.
 - **JavaScript** (`javascript.ts` — 62 Questions): Scope & Closures, Event Loop & Microtask Queue, Promises & Async/Await, Prototypes & Prototypal Chain, V8 Engine internals (Hidden classes, JIT compilation, GC), ES6+ modules.
@@ -34,7 +35,7 @@ Modular topic collections defined in `src/lib/data/topics/` covering core softwa
 - **DBMS & SQL** (`dbms.ts` — 62 Questions): Relational Algebra, B-Tree & Hash Indexing, ACID Properties, Transaction Isolation Levels, Normalization (1NF to 5NF), Query Optimization & EXPLAIN, Database Sharding & Replication.
 - **Operating Systems** (`os.ts` — 62 Questions): Process vs Thread, Virtual Memory & Paging, Page Fault Handling, CPU Scheduling Algorithms, Synchronization Primitives (Mutex, Semaphore), Deadlock Detection & Avoidance, Kernel Syscalls.
 - **Computer Networks** (`networks.ts` — 62 Questions): OSI & TCP/IP Stack, TCP 3-Way Handshake & Teardown, UDP, DNS Resolution Flow, HTTP/1.1 vs HTTP/2 vs HTTP/3, SSL/TLS 1.3 Handshake, Subnetting, Load Balancing.
-- **Additional Domains**: OOP, System Design, Git, Software Testing, Behavioral, AI Engineering, Data Engineering, Data Analytics, Business Analysis, Product Management, Frameworks.
+- **Additional Domains**: System Design, Git, Software Testing, Behavioral, AI Engineering, Data Engineering, Data Analytics, Business Analysis, Product Management, Frameworks.
 
 ### 2. LeetCode Top Interview 150 Catalog (150 Algorithmic Questions)
 Full algorithmic problem catalog across 23 subtopic groups (Array/String, Two Pointers, Sliding Window, Linked List, Trees, Graphs, Dynamic Programming, Heap, Trie, etc.), seeded with Java and Python reference implementations.

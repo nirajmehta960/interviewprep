@@ -17,8 +17,9 @@ Preparing for technical interviews across FAANG, Big Tech, and top tech companie
 
 ## ✨ Core Features & Key Capabilities
 
-### 1. 📖 High-Yield Question Bank (586 Total Questions)
-- **426 Conceptual & Deep-Dive Technical Questions** across 8 core software engineering domain modules:
+### 1. 📖 High-Yield Question Bank (712 Total Questions)
+- **473 Conceptual & Deep-Dive Technical Questions** across 9 core software engineering domain modules:
+  - 🧱 **OOP & Design**: 4 Pillars, Abstraction vs Encapsulation, Diamond Problem, Virtual Tables & vptr, Covariant Return Types, SOLID Principles (SRP, OCP, LSP, ISP, DIP), Design Patterns (Singleton, Factory, Builder, Strategy, Observer, Adapter, Decorator, Proxy), Law of Demeter, Value Objects vs Entities.
   - ☕ **Java**: JVM internals, memory model, GC algorithms (G1, ZGC), `HashMap` bucket mechanics, `ConcurrentHashMap` CAS locks, Virtual Threads.
   - 🐍 **Python**: LEGB scope, Decorators, Generators, Asyncio event loop, Python GIL, Reference Counting & GC cycles, Metaclasses, C Extensions.
   - ⚡ **JavaScript**: Scope & Closures, Event Loop & Microtasks, Promises/Async-Await, Prototypes & Prototypal Chain, V8 engine internals, ES6+ modules.

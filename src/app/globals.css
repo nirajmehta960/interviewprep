@@ -1,0 +1,296 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   InterviewPrep — design tokens
+   ==========================================================================
+   A mainstream education-platform system, modelled on Coursera: white
+   surfaces, a single blue brand colour, a humanist sans throughout, rounded
+   corners and soft shadows instead of hairline rules.
+
+   Source Sans 3 is the open version of Source Sans Pro, the face Coursera
+   actually ships, so the type feels the same without licensing a webfont.
+
+   Every utility resolves through a CSS variable, so the `.dark` block below
+   re-points the same tokens and the whole app follows without per-component
+   `dark:` classes.
+   ========================================================================== */
+
+/* Class-based dark mode: the theme is a deliberate choice that must survive a
+   reload, so it is driven by a class on <html>, not only the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* --- Surfaces ------------------------------------------------------- */
+  --color-paper: #ffffff;
+  --color-paper-sunken: #f5f7fa;
+  --color-card: #ffffff;
+
+  /* --- Text ------------------------------------------------------------
+     Measured on white: ink 16.5:1, ink-2 7.1:1, ink-3 4.9:1 — all AA+.
+     ink-4 is decorative only (markers, separators, empty placeholders). */
+  --color-ink: #1f1f1f;
+  --color-ink-2: #4e5a63;
+  --color-ink-3: #667380;
+  --color-ink-4: #9aa3ab;
+
+  /* --- Lines ---------------------------------------------------------- */
+  --color-rule: #e3e8ee;
+  --color-rule-soft: #eef1f5;
+
+  /* --- Accents ---------------------------------------------------------
+     brand   = links, primary action, active state
+     success = beginner / mastered
+     warn    = intermediate / scheduled
+     danger  = advanced / errors                                          */
+  --color-brand: #0056d2;
+  --color-brand-soft: #00419e;
+  --color-success: #067647;
+  --color-warn: #b54708;
+  --color-danger: #b42318;
+
+  --color-tint-brand: #eef4fd;
+  --color-tint-success: #ecfdf3;
+  --color-tint-warn: #fffaeb;
+  --color-tint-danger: #fef3f2;
+
+  /* --- Type ------------------------------------------------------------
+     One family at several weights. Headings are the same face as body,
+     which is what makes the platform read as a product rather than a
+     publication. Mono is reserved for code and identifiers. */
+  --font-sans: var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+
+  /* --- Radius ----------------------------------------------------------
+     Coursera's shapes: 4px on controls, 8px on cards, 12px on feature
+     panels. Nothing is fully square any more. */
+  --radius-control: 4px;
+  --radius-card: 8px;
+  --radius-panel: 12px;
+
+  /* --- Elevation -------------------------------------------------------
+     Soft and low-contrast — these lift a card off the page without
+     announcing themselves. */
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-card-hover: 0 4px 8px rgb(16 24 40 / 0.06), 0 2px 4px rgb(16 24 40 / 0.05);
+  --shadow-pop: 0 12px 28px rgb(16 24 40 / 0.12), 0 4px 8px rgb(16 24 40 / 0.06);
+
+  /* --- Layout --------------------------------------------------------- */
+  --spacing-rail: 15rem;
+}
+
+/* ==========================================================================
+   Dark surface — TraceDSA palette
+   ==========================================================================
+   Coursera ships no dark mode, so this one follows TraceDSA instead. Values
+   were read from the live site's computed styles rather than sampled from a
+   screenshot: a cool near-black ground with a faint violet cast, panels only
+   a few points lighter, hairlines made of low-opacity white, and a single warm
+   cream accent (their `--color-accent`) against it.
+
+   The cream is what makes the scheme: a saturated accent on a ground this dark
+   vibrates, whereas a desaturated warm neutral stays calm over long sessions.
+
+   Measured on the page colour: ink 16.3:1, ink-2 8.8:1, ink-3 5.6:1,
+   cream 10.8:1, success 9.9:1, warn 11.4:1, danger 6.9:1 — all AA or better.
+   ink-4 is decorative only, as in light mode.
+   ========================================================================== */
+
+.dark {
+  --color-paper: #0f1013;
+  --color-paper-sunken: #0d0e12;
+  --color-card: #15161d;
+
+  --color-ink: #ededf0;
+  --color-ink-2: #b0b0b8;
+  --color-ink-3: #8a8a93;
+  --color-ink-4: #52525e;
+
+  /* Low-opacity white rather than solid greys, so an edge reads consistently
+     whether it sits on the page, a panel, or a raised strip. */
+  --color-rule: rgb(255 255 255 / 0.08);
+  --color-rule-soft: rgb(255 255 255 / 0.05);
+
+  --color-brand: #c9c3b6;
+  --color-brand-soft: #e6e2d9;
+  --color-success: #34d399;
+  --color-warn: #fbbf24;
+  --color-danger: #f87171;
+
+  /* Tints are near-black with just enough hue to be identifiable; the two
+     neutral ones come straight from TraceDSA's own panel gradients. */
+  --color-tint-brand: #23232a;
+  --color-tint-success: #18261e;
+  --color-tint-warn: #2a2114;
+  --color-tint-danger: #2b1c1c;
+
+  /* On a ground this dark, borders carry the structure and shadows only
+     separate floating layers — so these stay minimal. */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-card-hover: 0 6px 16px rgb(0 0 0 / 0.55);
+  --shadow-pop: 0 18px 40px rgb(0 0 0 / 0.7);
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--color-rule);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* 16px base with a 1.6 rhythm — the reading-comfort default for long
+       technical prose, and up from the 14px the editorial system used. */
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  /* Headings share the body face and earn their hierarchy from weight and
+     size, not from a contrasting family. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.011em;
+    line-height: 1.25;
+    color: var(--color-ink);
+  }
+
+  ::selection {
+    background: var(--color-tint-brand);
+    color: var(--color-brand-soft);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: var(--radius-control);
+  }
+
+  /* Numbers in tables/meters must not shift width between states. */
+  table,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cfd6de;
+    border: 3px solid var(--color-paper);
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b6c0cb;
+  }
+
+  /* The thumb is the one piece of chrome that cannot read from a token,
+     since it sits between the track and the ground on both surfaces. */
+  .dark ::-webkit-scrollbar-thumb {
+    background: #2b2c35;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #3a3b46;
+  }
+
+  /* Respect the OS setting for anyone who has asked for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+/*
+ * Small meta label.
+ *
+ * Was uppercase monospace, which gave the old system its instrument-panel
+ * voice. Now a sans label with restrained tracking: still clearly secondary,
+ * but it reads as product chrome rather than laboratory equipment.
+ */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+/* Ordinal marker on list rows and section headers. */
+@utility marker-num {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink-4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Retained so long-form panes can opt into a subtle banded ground; the ruled
+   notebook paper of the editorial system is gone. */
+@utility ruled {
+  background-image: none;
+}
+
+/* Inline code inside prose. */
+@utility code-chip {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-paper-sunken);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-control);
+  padding: 0.1em 0.35em;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+/* Body links: underlined on hover, brand-coloured throughout. */
+@utility link-quiet {
+  color: var(--color-brand);
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-brand) 30%, transparent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 120ms ease;
+
+  &:hover {
+    text-decoration-color: var(--color-brand);
+  }
+}
+
+/* Standard card: surface, hairline, rounded, softly lifted. */
+@utility card-surface {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}

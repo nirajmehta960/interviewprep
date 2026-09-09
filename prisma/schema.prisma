@@ -1,0 +1,246 @@
+// InterviewPrep — database schema (Phase 1, B1)
+//
+// Hierarchy: Role → Category → Topic → Question.
+// Targets Supabase PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Beginner / Intermediate / Advanced, in the study plan's own vocabulary.
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum Language {
+  JAVA
+  PYTHON
+}
+
+/// ALGORITHMIC questions carry a visual trace workbench; the others do not.
+enum QuestionType {
+  CONCEPTUAL
+  ALGORITHMIC
+  BEHAVIORAL
+}
+
+/// The 6-stage mastery state machine. Order is significant.
+enum MasteryLevel {
+  NOT_STUDIED
+  STUDIED
+  TRACED
+  CAN_EXPLAIN
+  SOLVED_INDEPENDENTLY
+  INTERVIEW_READY
+}
+
+enum RevisionStatus {
+  DUE
+  UPCOMING
+  MASTERED
+}
+
+/// Which curated list a question belongs to, e.g. LeetCode Top Interview 150.
+enum Collection {
+  TOP_150
+  CORE
+  EXTRA
+}
+
+model Role {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  name        String
+  description String
+  /// Short topic list for the role selection cards.
+  highlights  String[]   @default([])
+  order       Int
+  categories  Category[]
+
+  @@map("roles")
+}
+
+model Category {
+  id     String  @id @default(uuid())
+  roleId String
+  role   Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  slug   String
+  name   String
+  order  Int
+  topics Topic[]
+
+  // Scoped rather than globally unique: several roles legitimately share a
+  // category name, and the URL is always role-qualified.
+  @@unique([roleId, slug])
+  @@map("categories")
+}
+
+model Topic {
+  id         String     @id @default(uuid())
+  categoryId String
+  category   Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  slug       String
+  name       String
+  monogram   String
+  blurb      String
+  order      Int
+  questions  Question[]
+
+  // Likewise scoped: "sql" and "python" appear under more than one role.
+  @@unique([categoryId, slug])
+  @@map("topics")
+}
+
+model Question {
+  id          String       @id @default(uuid())
+  slug        String       @unique
+  /// Source number where one exists, e.g. the LeetCode problem number.
+  number      Int?
+  title       String
+  difficulty  Difficulty
+  type        QuestionType @default(CONCEPTUAL)
+  collection  Collection   @default(CORE)
+  /// Position within its topic, for stable ordering.
+  order       Int
+  topicId     String
+  topic       Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  /// Grouping inside a topic, e.g. "Collections", "Sliding Window".
+  subtopic    String?
+  synopsis    String
+  leetcodeUrl String?
+  tags        String[]     @default([])
+  languages   Language[]   @default([])
+
+  // --- High-yield content. Empty until the question is written up. --------
+  shortAnswer         String?
+  detailedExplanation String[] @default([])
+  /// [{ label, input, output, explanation }]
+  examples            Json?
+  constraints         String[] @default([])
+  /// Worked approach, step by step.
+  approach            String[] @default([])
+  timeComplexity      String?
+  spaceComplexity     String?
+  interviewTip        String?
+  /// The mistake that most often breaks this answer.
+  commonTrap          String?
+  followUpQuestions   String[] @default([])
+  relatedTopics       String[] @default([])
+  /// Three-line high-yield card used by revision.
+  revisionSummary     String[] @default([])
+
+  solutions Solution[]
+  traces    TraceData[]
+  notes     UserNote[]
+  progress  UserProgress[]
+  revisions RevisionSchedule[]
+  bookmarks Bookmark[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([topicId])
+  @@index([difficulty])
+  @@index([type])
+  @@index([topicId, order])
+  @@map("questions")
+}
+
+model Solution {
+  id         String   @id @default(uuid())
+  questionId String
+  language   Language
+  code       String
+  version    Int      @default(1)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, language])
+  @@map("solutions")
+}
+
+/// Serialized step list for the visual trace engine (Phase 3).
+model TraceData {
+  id         String   @id @default(uuid())
+  questionId String
+  language   Language
+  /// Human-readable description of the input this trace was generated from.
+  inputLabel String
+  traceSteps Json
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([questionId, language])
+  @@map("trace_data")
+}
+
+/// Structured notebook fields (Phase 4).
+model UserNote {
+  id             String   @id @default(uuid())
+  userId         String
+  questionId     String
+  mentalModel    String?
+  keyInsight     String?
+  myMistake      String?
+  interviewTips  String?
+  keepForgetting String?
+  freeform       String?
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, questionId])
+  @@map("user_notes")
+}
+
+model UserProgress {
+  id                  String       @id @default(uuid())
+  userId              String
+  questionId          String
+  masteryLevel        MasteryLevel @default(NOT_STUDIED)
+  traceCompleted      Boolean      @default(false)
+  canExplain          Boolean      @default(false)
+  solvedIndependently Boolean      @default(false)
+  lastStudiedAt       DateTime?
+  question            Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  updatedAt           DateTime     @updatedAt
+
+  @@unique([userId, questionId])
+  @@index([userId, masteryLevel])
+  @@map("user_progress")
+}
+
+/// SM-2 spaced repetition state (Phase 5).
+model RevisionSchedule {
+  id             String         @id @default(uuid())
+  userId         String
+  questionId     String
+  lastReviewedAt DateTime?
+  nextReviewAt   DateTime
+  reviewCount    Int            @default(0)
+  easeFactor     Float          @default(2.5)
+  intervalDays   Int            @default(1)
+  status         RevisionStatus @default(UPCOMING)
+  question       Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([userId, nextReviewAt])
+  @@map("revision_schedules")
+}
+
+model Bookmark {
+  id         String   @id @default(uuid())
+  userId     String
+  questionId String
+  note       String?
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, questionId])
+  @@map("bookmarks")
+}

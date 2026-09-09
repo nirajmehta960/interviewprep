@@ -1,6 +1,8 @@
 import type { Collection, Difficulty, Language, Prisma, QuestionType } from "@prisma/client";
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
+import { allModularQuestions } from "@/lib/data/topics";
+import { problems as staticProblems } from "@/lib/data";
 
 /**
  * Question reads (Phase 2, B2).
@@ -265,12 +267,169 @@ const toDetail = (row: DetailRow): QuestionDetail => {
   };
 };
 
+function getStaticDetailBySlug(slug: string): QuestionDetail | null {
+  const q = allModularQuestions.find((item) => item.slug === slug);
+  if (q) {
+    return {
+      slug: q.slug,
+      number: null,
+      title: q.title,
+      difficulty: (q.difficulty ?? "EASY") as Difficulty,
+      type: "CONCEPTUAL" as QuestionType,
+      collection: "CORE" as Collection,
+      subtopic: q.subtopic ?? null,
+      synopsis: q.synopsis,
+      tags: q.tags ?? [],
+      languages: ["JAVA", "PYTHON"] as Language[],
+      order: 1,
+      written: true,
+      leetcodeUrl: null,
+      shortAnswer: q.shortAnswer ?? null,
+      detailedExplanation: q.detailedExplanation ?? [],
+      examples: [],
+      constraints: [],
+      approach: [],
+      timeComplexity: null,
+      spaceComplexity: null,
+      interviewTip: q.interviewTip ?? null,
+      commonTrap: q.commonTrap ?? null,
+      followUpQuestions: q.followUpQuestions ?? [],
+      relatedTopics: q.relatedTopics ?? [],
+      revisionSummary: [],
+      solutions: [],
+      context: {
+        role: { slug: "software-engineer", name: "Software Engineer" },
+        category: { slug: "languages", name: "Languages" },
+        topic: { slug: q.topicSlug, name: q.topicSlug.toUpperCase(), monogram: q.topicSlug.substring(0, 2).toUpperCase() },
+      },
+    };
+  }
+
+  const p = staticProblems.find((item) => item.slug === slug);
+  if (p) {
+    return {
+      slug: p.slug,
+      number: p.number ?? null,
+      title: p.title,
+      difficulty: p.difficulty as Difficulty,
+      type: "ALGORITHMIC" as QuestionType,
+      collection: (p.collection ?? "CORE") as Collection,
+      subtopic: p.patternSlugs[0] ?? null,
+      synopsis: p.synopsis,
+      tags: p.patternSlugs ?? [],
+      languages: ["JAVA", "PYTHON"] as Language[],
+      order: 1,
+      written: true,
+      leetcodeUrl: p.leetcodeUrl ?? null,
+      shortAnswer: p.intuition ?? null,
+      detailedExplanation: p.description ?? [],
+      examples: (p.examples ?? []) as unknown as QuestionExample[],
+      constraints: p.constraints ?? [],
+      approach: p.approach ?? [],
+      timeComplexity: p.timeComplexity ?? null,
+      spaceComplexity: p.spaceComplexity ?? null,
+      interviewTip: p.keyTakeaway ?? null,
+      commonTrap: p.criticalTrap ?? null,
+      followUpQuestions: [],
+      relatedTopics: p.patternSlugs ?? [],
+      revisionSummary: p.revisionSummary ?? [],
+      solutions: p.solutions?.map((s) => ({ language: s.language as Language, code: s.code })) ?? [],
+      context: {
+        role: { slug: "software-engineer", name: "Software Engineer" },
+        category: { slug: "cs-fundamentals", name: "CS Fundamentals" },
+        topic: { slug: "dsa", name: "Data Structures & Algorithms", monogram: "DS" },
+      },
+    };
+  }
+
+  return null;
+}
+
+function getStaticTopicQuestions(topicSlug: string): QuestionDetail[] {
+  const conceptual = allModularQuestions.filter((q) => q.topicSlug === topicSlug);
+  if (conceptual.length > 0) {
+    return conceptual.map((q, idx) => ({
+      slug: q.slug,
+      number: null,
+      title: q.title,
+      difficulty: (q.difficulty ?? "EASY") as Difficulty,
+      type: "CONCEPTUAL" as QuestionType,
+      collection: "CORE" as Collection,
+      subtopic: q.subtopic ?? null,
+      synopsis: q.synopsis,
+      tags: q.tags ?? [],
+      languages: ["JAVA", "PYTHON"] as Language[],
+      order: idx + 1,
+      written: true,
+      leetcodeUrl: null,
+      shortAnswer: q.shortAnswer ?? null,
+      detailedExplanation: q.detailedExplanation ?? [],
+      examples: [],
+      constraints: [],
+      approach: [],
+      timeComplexity: null,
+      spaceComplexity: null,
+      interviewTip: q.interviewTip ?? null,
+      commonTrap: q.commonTrap ?? null,
+      followUpQuestions: q.followUpQuestions ?? [],
+      relatedTopics: q.relatedTopics ?? [],
+      revisionSummary: [],
+      solutions: [],
+      context: {
+        role: { slug: "software-engineer", name: "Software Engineer" },
+        category: { slug: "languages", name: "Languages" },
+        topic: { slug: topicSlug, name: topicSlug.toUpperCase(), monogram: topicSlug.substring(0, 2).toUpperCase() },
+      },
+    }));
+  }
+
+  const dsa = staticProblems;
+  return dsa.map((p, idx) => ({
+    slug: p.slug,
+    number: p.number ?? null,
+    title: p.title,
+    difficulty: p.difficulty as Difficulty,
+    type: "ALGORITHMIC" as QuestionType,
+    collection: (p.collection ?? "CORE") as Collection,
+    subtopic: p.patternSlugs[0] ?? null,
+    synopsis: p.synopsis,
+    tags: p.patternSlugs ?? [],
+    languages: ["JAVA", "PYTHON"] as Language[],
+    order: idx + 1,
+    written: true,
+    leetcodeUrl: p.leetcodeUrl ?? null,
+    shortAnswer: p.intuition ?? null,
+    detailedExplanation: p.description ?? [],
+    examples: (p.examples ?? []) as unknown as QuestionExample[],
+    constraints: p.constraints ?? [],
+    approach: p.approach ?? [],
+    timeComplexity: p.timeComplexity ?? null,
+    spaceComplexity: p.spaceComplexity ?? null,
+    interviewTip: p.keyTakeaway ?? null,
+    commonTrap: p.criticalTrap ?? null,
+    followUpQuestions: [],
+    relatedTopics: p.patternSlugs ?? [],
+    revisionSummary: p.revisionSummary ?? [],
+    solutions: p.solutions?.map((s) => ({ language: s.language as Language, code: s.code })) ?? [],
+    context: {
+      role: { slug: "software-engineer", name: "Software Engineer" },
+      category: { slug: "cs-fundamentals", name: "CS Fundamentals" },
+      topic: { slug: "dsa", name: "Data Structures & Algorithms", monogram: "DS" },
+    },
+  }));
+}
+
 export const findBySlug = cache(async (slug: string): Promise<QuestionDetail | null> => {
-  const row = await prisma.question.findUnique({
-    where: { slug },
-    include: DETAIL_INCLUDE,
-  });
-  return row ? toDetail(row) : null;
+  try {
+    const row = await prisma.question.findUnique({
+      where: { slug },
+      include: DETAIL_INCLUDE,
+    });
+    if (row) return toDetail(row);
+  } catch (err) {
+    console.warn("Database unavailable in findBySlug, using static fallback:", err);
+  }
+  return getStaticDetailBySlug(slug);
 });
 
 export interface TopicReader {
@@ -281,23 +440,25 @@ export interface TopicReader {
   conceptual: boolean;
 }
 
-/**
- * Every question in a topic, with full content, for the inline reading view.
- *
- * Theory topics are read straight down the page like a chapter rather than
- * navigated one question at a time, so the whole topic is fetched at once. That
- * is deliberate but bounded: it is only used for conceptual topics, which hold
- * tens of questions, never the 150-problem DSA catalogue.
- */
 export const findTopicReader = cache(
   async (roleSlug: string, topicSlug: string): Promise<TopicReader> => {
-    const rows = await prisma.question.findMany({
-      where: { topic: { slug: topicSlug, category: { role: { slug: roleSlug } } } },
-      orderBy: { order: "asc" },
-      include: DETAIL_INCLUDE,
-    });
+    let questions: QuestionDetail[] = [];
+    try {
+      const rows = await prisma.question.findMany({
+        where: { topic: { slug: topicSlug, category: { role: { slug: roleSlug } } } },
+        orderBy: { order: "asc" },
+        include: DETAIL_INCLUDE,
+      });
+      if (rows.length > 0) {
+        questions = rows.map(toDetail);
+      }
+    } catch (err) {
+      console.warn("Database unavailable in findTopicReader, using static fallback:", err);
+    }
 
-    const questions = rows.map(toDetail);
+    if (questions.length === 0) {
+      questions = getStaticTopicQuestions(topicSlug);
+    }
 
     return {
       byDifficulty: DIFFICULTY_ORDER.map((difficulty) => ({
@@ -310,7 +471,6 @@ export const findTopicReader = cache(
         medium: questions.filter((q) => q.difficulty === "MEDIUM").length,
         hard: questions.filter((q) => q.difficulty === "HARD").length,
       },
-      // A topic counts as conceptual when nothing in it is a coding problem.
       conceptual: questions.length > 0 && questions.every((q) => q.type !== "ALGORITHMIC"),
     };
   },
@@ -318,74 +478,75 @@ export const findTopicReader = cache(
 
 /** Previous / next within the same topic, for continuous reading. */
 export async function getNeighbours(slug: string) {
-  const current = await prisma.question.findUnique({
-    where: { slug },
-    select: { order: true, topicId: true },
-  });
-  if (!current) return { previous: null, next: null };
-
-  const [previous, next] = await Promise.all([
-    prisma.question.findFirst({
-      where: { topicId: current.topicId, order: { lt: current.order } },
-      orderBy: { order: "desc" },
-      select: { slug: true, title: true },
-    }),
-    prisma.question.findFirst({
-      where: { topicId: current.topicId, order: { gt: current.order } },
-      orderBy: { order: "asc" },
-      select: { slug: true, title: true },
-    }),
-  ]);
-
-  return { previous, next };
+  try {
+    const current = await prisma.question.findUnique({
+      where: { slug },
+      select: { order: true, topicId: true },
+    });
+    if (current) {
+      const [previous, next] = await Promise.all([
+        prisma.question.findFirst({
+          where: { topicId: current.topicId, order: { lt: current.order } },
+          orderBy: { order: "desc" },
+          select: { slug: true, title: true },
+        }),
+        prisma.question.findFirst({
+          where: { topicId: current.topicId, order: { gt: current.order } },
+          orderBy: { order: "asc" },
+          select: { slug: true, title: true },
+        }),
+      ]);
+      return { previous, next };
+    }
+  } catch (err) {
+    console.warn("Database unavailable in getNeighbours:", err);
+  }
+  return { previous: null, next: null };
 }
 
-/**
- * Related questions, subtopic matches first.
- *
- * Ranking matters here: a shared subtopic ("Intervals") is a far stronger
- * signal than a shared tag, since broad tags like "Greedy" would otherwise
- * pull in unrelated problems.
- */
 export async function findRelated(slug: string, limit = 4): Promise<QuestionSummary[]> {
-  const current = await prisma.question.findUnique({
-    where: { slug },
-    select: { subtopic: true, topicId: true, tags: true },
-  });
-  if (!current) return [];
+  try {
+    const current = await prisma.question.findUnique({
+      where: { slug },
+      select: { subtopic: true, topicId: true, tags: true },
+    });
+    if (current) {
+      const ordering: Prisma.QuestionOrderByWithRelationInput[] = [
+        { interviewTip: { sort: "desc", nulls: "last" } },
+        { order: "asc" },
+      ];
 
-  const ordering: Prisma.QuestionOrderByWithRelationInput[] = [
-    { interviewTip: { sort: "desc", nulls: "last" } },
-    { order: "asc" },
-  ];
+      const sameSubtopic = current.subtopic
+        ? await prisma.question.findMany({
+            where: { topicId: current.topicId, slug: { not: slug }, subtopic: current.subtopic },
+            orderBy: ordering,
+            take: limit,
+            select: SUMMARY_SELECT,
+          })
+        : [];
 
-  const sameSubtopic = current.subtopic
-    ? await prisma.question.findMany({
-        where: { topicId: current.topicId, slug: { not: slug }, subtopic: current.subtopic },
-        orderBy: ordering,
-        take: limit,
-        select: SUMMARY_SELECT,
-      })
-    : [];
+      if (sameSubtopic.length >= limit) return sameSubtopic.map(toSummary);
 
-  if (sameSubtopic.length >= limit) return sameSubtopic.map(toSummary);
+      const seen = new Set(sameSubtopic.map((row) => row.slug));
+      const byTag = current.tags.length
+        ? await prisma.question.findMany({
+            where: {
+              topicId: current.topicId,
+              slug: { notIn: [slug, ...seen] },
+              tags: { hasSome: current.tags },
+            },
+            orderBy: ordering,
+            take: limit - sameSubtopic.length,
+            select: SUMMARY_SELECT,
+          })
+        : [];
 
-  // Top up with tag matches from elsewhere in the topic.
-  const seen = new Set(sameSubtopic.map((row) => row.slug));
-  const byTag = current.tags.length
-    ? await prisma.question.findMany({
-        where: {
-          topicId: current.topicId,
-          slug: { notIn: [slug, ...seen] },
-          tags: { hasSome: current.tags },
-        },
-        orderBy: ordering,
-        take: limit - sameSubtopic.length,
-        select: SUMMARY_SELECT,
-      })
-    : [];
-
-  return [...sameSubtopic, ...byTag].map(toSummary);
+      return [...sameSubtopic, ...byTag].map(toSummary);
+    }
+  } catch (err) {
+    console.warn("Database unavailable in findRelated:", err);
+  }
+  return [];
 }
 
 export interface SearchHit {
@@ -400,51 +561,70 @@ export interface SearchHit {
   roleSlug: string;
 }
 
-/** Command palette search across every question. */
 export async function searchQuestions(query: string, limit = 8): Promise<SearchHit[]> {
-  const needle = query.trim();
-
-  const rows = await prisma.question.findMany({
-    where: needle
-      ? {
-          OR: [
-            { title: { contains: needle, mode: "insensitive" } },
-            { synopsis: { contains: needle, mode: "insensitive" } },
-            { subtopic: { contains: needle, mode: "insensitive" } },
-            { tags: { hasSome: [needle] } },
-          ],
-        }
-      : {},
-    orderBy: [{ interviewTip: { sort: "desc", nulls: "last" } }, { order: "asc" }],
-    take: limit,
-    select: {
-      slug: true,
-      title: true,
-      difficulty: true,
-      type: true,
-      subtopic: true,
-      synopsis: true,
-      topic: {
-        select: {
-          name: true,
-          slug: true,
-          category: { select: { role: { select: { slug: true } } } },
+  const needle = query.trim().toLowerCase();
+  try {
+    const rows = await prisma.question.findMany({
+      where: needle
+        ? {
+            OR: [
+              { title: { contains: needle, mode: "insensitive" } },
+              { synopsis: { contains: needle, mode: "insensitive" } },
+              { subtopic: { contains: needle, mode: "insensitive" } },
+              { tags: { hasSome: [needle] } },
+            ],
+          }
+        : {},
+      orderBy: [{ interviewTip: { sort: "desc", nulls: "last" } }, { order: "asc" }],
+      take: limit,
+      select: {
+        slug: true,
+        title: true,
+        difficulty: true,
+        type: true,
+        subtopic: true,
+        synopsis: true,
+        topic: {
+          select: {
+            name: true,
+            slug: true,
+            category: { select: { role: { select: { slug: true } } } },
+          },
         },
       },
-    },
-  });
+    });
 
-  return rows.map((row) => ({
-    slug: row.slug,
-    title: row.title,
-    difficulty: row.difficulty,
-    type: row.type,
-    subtopic: row.subtopic,
-    synopsis: row.synopsis,
-    topicName: row.topic.name,
-    topicSlug: row.topic.slug,
-    roleSlug: row.topic.category.role.slug,
-  }));
+    if (rows.length > 0) {
+      return rows.map((row) => ({
+        slug: row.slug,
+        title: row.title,
+        difficulty: row.difficulty,
+        type: row.type,
+        subtopic: row.subtopic,
+        synopsis: row.synopsis,
+        topicName: row.topic.name,
+        topicSlug: row.topic.slug,
+        roleSlug: row.topic.category.role.slug,
+      }));
+    }
+  } catch (err) {
+    console.warn("Database unavailable in searchQuestions, using static search:", err);
+  }
+
+  return allModularQuestions
+    .filter((q) => !needle || q.title.toLowerCase().includes(needle) || q.synopsis.toLowerCase().includes(needle))
+    .slice(0, limit)
+    .map((q) => ({
+      slug: q.slug,
+      title: q.title,
+      difficulty: (q.difficulty ?? "EASY") as Difficulty,
+      type: "CONCEPTUAL" as QuestionType,
+      topicName: q.topicSlug.toUpperCase(),
+      topicSlug: q.topicSlug,
+      subtopic: q.subtopic ?? null,
+      synopsis: q.synopsis,
+      roleSlug: "software-engineer",
+    }));
 }
 
 export interface SubtopicHit {
@@ -457,68 +637,77 @@ export interface SubtopicHit {
   count: number;
 }
 
-/**
- * Subtopic matches for the search results page.
- *
- * A concept like "HashMap" is a subtopic rather than a topic in this model, so
- * without this a search for it would return only individual questions and
- * never the place to study the whole group. Results link straight to the
- * filtered topic view.
- */
 export async function searchSubtopics(query: string, limit = 6): Promise<SubtopicHit[]> {
   const needle = query.trim();
   if (!needle) return [];
 
-  const rows = await prisma.question.findMany({
-    where: { subtopic: { contains: needle, mode: "insensitive" } },
-    orderBy: { order: "asc" },
-    select: {
-      subtopic: true,
-      topic: {
-        select: {
-          slug: true,
-          name: true,
-          category: { select: { name: true, role: { select: { slug: true, name: true } } } },
+  try {
+    const rows = await prisma.question.findMany({
+      where: { subtopic: { contains: needle, mode: "insensitive" } },
+      orderBy: { order: "asc" },
+      select: {
+        subtopic: true,
+        topic: {
+          select: {
+            slug: true,
+            name: true,
+            category: { select: { name: true, role: { select: { slug: true, name: true } } } },
+          },
         },
       },
-    },
-  });
-
-  // Collapse the question rows into one entry per (topic, subtopic) pair.
-  const groups = new Map<string, SubtopicHit>();
-  for (const row of rows) {
-    if (!row.subtopic) continue;
-    const key = `${row.topic.slug}/${row.subtopic}`;
-    const existing = groups.get(key);
-    if (existing) {
-      existing.count += 1;
-      continue;
-    }
-    groups.set(key, {
-      subtopic: row.subtopic,
-      roleSlug: row.topic.category.role.slug,
-      roleName: row.topic.category.role.name,
-      categoryName: row.topic.category.name,
-      topicSlug: row.topic.slug,
-      topicName: row.topic.name,
-      count: 1,
     });
+
+    const groups = new Map<string, SubtopicHit>();
+    for (const row of rows) {
+      if (!row.subtopic) continue;
+      const key = `${row.topic.slug}/${row.subtopic}`;
+      const existing = groups.get(key);
+      if (existing) {
+        existing.count += 1;
+        continue;
+      }
+      groups.set(key, {
+        subtopic: row.subtopic,
+        roleSlug: row.topic.category.role.slug,
+        roleName: row.topic.category.role.name,
+        categoryName: row.topic.category.name,
+        topicSlug: row.topic.slug,
+        topicName: row.topic.name,
+        count: 1,
+      });
+    }
+
+    if (groups.size > 0) {
+      return [...groups.values()].sort((a, b) => b.count - a.count).slice(0, limit);
+    }
+  } catch (err) {
+    console.warn("Database unavailable in searchSubtopics:", err);
   }
 
-  return [...groups.values()].sort((a, b) => b.count - a.count).slice(0, limit);
+  return [];
 }
 
-/** Distinct subtopics for a topic, in study plan order. */
 export async function listSubtopics(roleSlug: string, topicSlug: string): Promise<string[]> {
-  const rows = await prisma.question.findMany({
-    where: { topic: { slug: topicSlug, category: { role: { slug: roleSlug } } } },
-    orderBy: { order: "asc" },
-    select: { subtopic: true },
-  });
+  try {
+    const rows = await prisma.question.findMany({
+      where: { topic: { slug: topicSlug, category: { role: { slug: roleSlug } } } },
+      orderBy: { order: "asc" },
+      select: { subtopic: true },
+    });
 
+    const seen: string[] = [];
+    for (const row of rows) {
+      if (row.subtopic && !seen.includes(row.subtopic)) seen.push(row.subtopic);
+    }
+    if (seen.length > 0) return seen;
+  } catch (err) {
+    console.warn("Database unavailable in listSubtopics, using static fallback:", err);
+  }
+
+  const staticQuestions = allModularQuestions.filter((q) => q.topicSlug === topicSlug);
   const seen: string[] = [];
-  for (const row of rows) {
-    if (row.subtopic && !seen.includes(row.subtopic)) seen.push(row.subtopic);
+  for (const q of staticQuestions) {
+    if (q.subtopic && !seen.includes(q.subtopic)) seen.push(q.subtopic);
   }
   return seen;
 }

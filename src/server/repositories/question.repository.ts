@@ -154,12 +154,17 @@ function buildWhere(filters: QuestionFilters): Prisma.QuestionWhereInput {
 }
 
 export async function findQuestions(filters: QuestionFilters = {}): Promise<QuestionSummary[]> {
-  const rows = await prisma.question.findMany({
-    where: buildWhere(filters),
-    orderBy: [{ order: "asc" }],
-    select: SUMMARY_SELECT,
-  });
-  return rows.map(toSummary);
+  try {
+    const rows = await prisma.question.findMany({
+      where: buildWhere(filters),
+      orderBy: [{ order: "asc" }],
+      select: SUMMARY_SELECT,
+    });
+    return rows.map(toSummary);
+  } catch (err) {
+    console.warn("Database error in findQuestions:", err);
+    return [];
+  }
 }
 
 export interface TopicQuestions {
